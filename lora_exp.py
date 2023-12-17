@@ -58,7 +58,8 @@ state_dict.update(regression_data["model"])
 model.load_state_dict(state_dict, strict=False)## strict=False because of lora_qv_rank
 model = model.to("cuda")
 ################################################data
-
+### Becasue we are just measuring performance, we can use a dataset of random proteins
+## to get a sense of the memory usage
 class RandomProteinDataset:
     def __init__(self, alphabet):
         self.alphabet = alphabet
@@ -70,6 +71,9 @@ class RandomProteinDataset:
 
 
 from torch.utils.data import Sampler
+### given a total number of tokens, sample a batch of sequences
+### with a specified maximum sequence length
+### basically just samples sequence, then remove the lenght from the total 
 
 class TokenCapSampler(Sampler):
     def __init__(self,toks_per_batch, max_seql = 2048):
@@ -104,6 +108,8 @@ dl = torch.utils.data.DataLoader(
 ###############################################data
 
 current_run_time = []
+
+## disable profiling for now 
 # prof = torch.profiler.profile(
 #     schedule=torch.profiler.schedule(wait=1, warmup=1, active=5, repeat=0),
 #     on_trace_ready=torch.profiler.tensorboard_trace_handler(f'./profiler_logs/prof_with_fa_loraqv={lora_qv_rank}.log'),
@@ -123,6 +129,8 @@ optimizer = torch.optim.AdamW(model.parameters(),
 lm_loss_fn = torch.nn.CrossEntropyLoss(reduction='none',
                                             ignore_index=-100)
 #prof.start()
+
+## basic training loop
 with torch.cuda.amp.autocast(enabled=autocast):
     for batch in dl:
         #prof.step()

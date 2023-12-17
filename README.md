@@ -51,5 +51,35 @@ If you want to be able to fully run the code, you'll need to download the ESM mo
 
 There are paths throughout that are hardcoded to where the above files were on my machine. You'll need to change these appropriately to whereever you download the above files. 
 
+## Running code
 
+The code base makes extensive use of libraries outlined in env.yml which can be run with conda. See the `run_*` scripts to re-run different experiments.
+
+
+## Results
+
+### Performance on inference with FlashAttention
+
+![Fig 1. Memory vs Max tokens per batch](figs/mem_vs_batchsize.png)
+
+![Fig 2. Memory vs Sequence Length](figs/mem_vs_seqlen.png)
+
+Flash Attention allows for linear scaling of memory usage with sequence length. 
+
+### Finetuning overhead with LoRA and DeepSpeed
+![Table 1: Max tokens per batch and Peak Memory Usage of Different sized ESM models ](figs/table_finetuning.png)
+
+Both LoRA and DeepSpeed allow for larger batchsizes
+
+### Effect of Pruning on FLIP-Meltome benchmark performance 
+
+![Fig 3. Change in model performance as a function of pruning threshold](figs/meltome_benchmark.png)
+
+Meltome benchmark performance is rogitbust to pruning. 
+
+### 2:4 Semi-Structured Sparsity Results 
+
+![Table 2: Peak Memory and run time for 2:4 semi-structured sparsity](figs/table_24.png)
+
+2:4 semi-structured sparsity reduces memory overhead, but takes 2x longer to run - this should not be the case, need to lookinto this more. 
 

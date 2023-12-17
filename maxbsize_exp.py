@@ -7,6 +7,11 @@ import sys
 import esm2
 import numpy as np
 
+## input arugments 
+## 1 - whether or not to use flash attention - "use_fa" to enable flash attention, anhything else to not 
+## 2 - which ESM model string to use. See ESM website for reference 
+## 3 - value to scale the total number of tokens by. 
+## 4 - maximum sequence length when drawing random sequences.
 precision = 16
 flash_attention = sys.argv[1] == "use_fa"
 
@@ -51,17 +56,27 @@ model.load_state_dict(state_dict, strict=True)
 model = model.to("cuda")
 
 
+### Becasue we are just measuring performance, we can use a dataset of random proteins
+## to get a sense of the memory usage
+
 class RandomProteinDataset:
     def __init__(self, alphabet):
         self.alphabet = alphabet
         self.standard_toks = ['L','A','G','V','S','E','R','T','I','D','P','K','Q','N','F','Y','M','H','W','C','X','B','U','Z', 'O']
+    def __len__(self):
+        return 10000
     def __getitem__(self, seql):
         random_seq = np.random.choice(self.standard_toks, seql, replace=True)
         seq = ''.join(random_seq)
-        return (seql, seq)
+        return (seql, seq, True, True)
 
 
 from torch.utils.data import Sampler
+
+### given a total number of tokens, sample a batch of sequences
+### with a specified maximum sequence length
+### basically just samples sequence, then remove the lenght from the total 
+
 
 class TokenCapSampler(Sampler):
     def __init__(self,toks_per_batch, max_seql = 2048):

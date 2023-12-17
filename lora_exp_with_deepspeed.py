@@ -12,6 +12,7 @@ from esm_data import BatchFilesSeqDataset, ProtSeqBatchConverter, iter_manual_wo
 from deepspeed.ops.adam import DeepSpeedCPUAdam
 
 
+
 precision = 16
 flash_attention = True
 # ESM variables
@@ -63,6 +64,9 @@ model.load_state_dict(state_dict, strict=False)## strict=False because of lora_q
 model = model.to("cuda")
 ################################################data
 
+### Becasue we are just measuring performance, we can use a dataset of random proteins
+## to get a sense of the memory usage
+
 class RandomProteinDataset:
     def __init__(self, alphabet):
         self.alphabet = alphabet
@@ -76,6 +80,10 @@ class RandomProteinDataset:
 
 
 from torch.utils.data import Sampler
+
+### given a total number of tokens, sample a batch of sequences
+### with a specified maximum sequence length
+### basically just samples sequence, then remove the lenght from the total 
 
 class TokenCapSampler(Sampler):
     def __init__(self,toks_per_batch, max_seql = 2048):
@@ -105,7 +113,8 @@ dl = torch.utils.data.DataLoader(
     pin_memory=True
 )
 
-#### PTL
+## use DeepSpeed though pytorch lightning to simplify implemtnation
+## Lightning's Trainer implementation makes it simple to use DeepSpeed
 class LitESM(pl.LightningModule):
     def __init__(self, model):
         super().__init__()
@@ -138,8 +147,6 @@ trainer = pl.Trainer(
     accelerator="gpu", devices=1, strategy="deepspeed_stage_2_offload", precision=16,
     use_distributed_sampler=False, max_epochs=1
 )
-
-
 
 ###############################################data
 trainer.fit(LitESM(model), dl)

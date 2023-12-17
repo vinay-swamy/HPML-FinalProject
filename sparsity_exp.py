@@ -14,15 +14,18 @@ from esm_data import BatchFilesSeqDataset, ProtSeqBatchConverter, iter_manual_wo
 import pickle 
 precision = 16
 flash_attention = True
+"""
+Evaluate the effect of pruning on ESM models. 
+For MLM loss, use the first 10K uniref50 sequences.
+for meltome dataset, generate mean pooled emebddings, and train an XGBoost regressor.
+"""
+
 
 # ESM variables
 model_name = "esm2_t33_650M_UR50D"
 esm_pt = esm.pretrained.load_model_and_alphabet(model_name)
 
 model_cache_dir = Path('/manitou/pmg/users/vss2134/cache/hub/checkpoints')
-# data
-fasta_files = [Path('/manitou/pmg/users/vss2134/HPML/project/fluorescence/fluorescence_train.fasta'),]  # worker=0 for single file
-
 if precision == 16:
     autocast = True
     #assert flash_attention is True, 'FP16 wihtout flashattention gives poor results'
@@ -46,7 +49,9 @@ model_min_args = {
 }
 model = esm2.ESM2(**model_min_args).to("cuda")
 model_vanilla = deepcopy(model)
-
+## load in first 10K uniref50 sequences
+## some of them are quite long, so just  truncate them to 1024 for now
+## prefetch the batches so that the random mask is the same across models
 from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
 import pandas as pd
