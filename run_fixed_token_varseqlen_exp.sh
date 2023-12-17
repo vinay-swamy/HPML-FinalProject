@@ -1,0 +1,43 @@
+#!/bin/bash 
+python maxbsize_exp.py use_fa "esm2_t6_8M_UR50D" 1 100 >> seqlen_exp.csv
+python maxbsize_exp.py use_fa "esm2_t6_8M_UR50D" 1 256 >> seqlen_exp.csv
+python maxbsize_exp.py use_fa "esm2_t6_8M_UR50D" 1 512 >> seqlen_exp.csv
+python maxbsize_exp.py use_fa "esm2_t6_8M_UR50D" 1 1024 >> seqlen_exp.csv
+python maxbsize_exp.py use_fa "esm2_t6_8M_UR50D" 1 2048 >> seqlen_exp.csv
+python maxbsize_exp.py use_fa esm2_t12_35M_UR50D  1 100  >> seqlen_exp.csv
+python maxbsize_exp.py use_fa esm2_t12_35M_UR50D  1 256 >> seqlen_exp.csv
+python maxbsize_exp.py use_fa esm2_t12_35M_UR50D  1 512 >> seqlen_exp.csv
+python maxbsize_exp.py use_fa esm2_t12_35M_UR50D  1 1024 >> seqlen_exp.csv
+python maxbsize_exp.py use_fa esm2_t12_35M_UR50D  1 2048 >> seqlen_exp.csv
+python maxbsize_exp.py use_fa esm2_t30_150M_UR50D  1 100  >> seqlen_exp.csv
+python maxbsize_exp.py use_fa esm2_t30_150M_UR50D  1 256 >> seqlen_exp.csv
+python maxbsize_exp.py use_fa esm2_t30_150M_UR50D  1 512 >> seqlen_exp.csv
+python maxbsize_exp.py use_fa esm2_t30_150M_UR50D  1 1024 >> seqlen_exp.csv
+python maxbsize_exp.py use_fa esm2_t30_150M_UR50D  1 2048 >> seqlen_exp.csv
+python maxbsize_exp.py use_fa esm2_t33_650M_UR50D  1 100 >> seqlen_exp.csv
+python maxbsize_exp.py use_fa esm2_t33_650M_UR50D  1 256 >> seqlen_exp.csv
+python maxbsize_exp.py use_fa esm2_t33_650M_UR50D  1 512 >> seqlen_exp.csv
+python maxbsize_exp.py use_fa esm2_t33_650M_UR50D  1 1024 >> seqlen_exp.csv
+python maxbsize_exp.py use_fa esm2_t33_650M_UR50D  1 2048 >> seqlen_exp.csv
+
+python maxbsize_exp.py no_fa "esm2_t6_8M_UR50D" 1 100 >> seqlen_exp.csv
+python maxbsize_exp.py no_fa "esm2_t6_8M_UR50D" 1 256 >> seqlen_exp.csv
+python maxbsize_exp.py no_fa "esm2_t6_8M_UR50D" 1 512 >> seqlen_exp.csv
+python maxbsize_exp.py no_fa "esm2_t6_8M_UR50D" 1 1024 >> seqlen_exp.csv
+python maxbsize_exp.py no_fa "esm2_t6_8M_UR50D" 1 2048 >> seqlen_exp.csv
+python maxbsize_exp.py no_fa esm2_t12_35M_UR50D  1 100  >> seqlen_exp.csv
+python maxbsize_exp.py no_fa esm2_t12_35M_UR50D  1 256 >> seqlen_exp.csv
+python maxbsize_exp.py no_fa esm2_t12_35M_UR50D  1 512 >> seqlen_exp.csv
+python maxbsize_exp.py no_fa esm2_t12_35M_UR50D  1 1024 >> seqlen_exp.csv
+python maxbsize_exp.py no_fa esm2_t12_35M_UR50D  1 2048 >> seqlen_exp.csv
+python maxbsize_exp.py no_fa esm2_t30_150M_UR50D  1 100  >> seqlen_exp.csv
+python maxbsize_exp.py no_fa esm2_t30_150M_UR50D  1 256 >> seqlen_exp.csv
+python maxbsize_exp.py no_fa esm2_t30_150M_UR50D  1 512 >> seqlen_exp.csv
+python maxbsize_exp.py no_fa esm2_t30_150M_UR50D  1 1024 >> seqlen_exp.csv
+python maxbsize_exp.py no_fa esm2_t30_150M_UR50D  1 2048 >> seqlen_exp.csv
+python maxbsize_exp.py no_fa esm2_t33_650M_UR50D  1 100 >> seqlen_exp.csv
+python maxbsize_exp.py no_fa esm2_t33_650M_UR50D  1 256 >> seqlen_exp.csv
+python maxbsize_exp.py no_fa esm2_t33_650M_UR50D  1 512 >> seqlen_exp.csv
+python maxbsize_exp.py no_fa esm2_t33_650M_UR50D  1 1024 >> seqlen_exp.csv
+python maxbsize_exp.py no_fa esm2_t33_650M_UR50D  1 2048 >> seqlen_exp.csv
+
