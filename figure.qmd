@@ -1,0 +1,195 @@
+---
+title: "HPML final project: Optimizing ESM, a protein large language model"
+author: "Vinay Swamy"
+format: docx
+bibliography: HPML_project.bib
+csl: diabetologia.csl
+---
+
+
+### Flash attention benchmarks
+
+```{python}
+import pandas as pd 
+import plotnine as pn
+import numpy as np 
+
+run_df = pd.read_csv("/manitou/pmg/users/vss2134/HPML/project/esm_training/esm_training/maxbsize_exp.csv", names = ["model", "tokens_per_batch", "avg_peak_mem", "avg_run_time" ]).assign(
+    model_size = lambda x: x.model.str.split("_").str[2].str.split("M").str[0],
+    tokens_per_batch = lambda x: x.tokens_per_batch.astype(int) * 2560,
+    avg_peak_mem = lambda x: x.avg_peak_mem + 13
+).assign(
+    model_size =lambda x: pd.Categorical(x.model_size, categories = ["650", "150", "35", "8"])
+)
+
+```
+
+
+```{python}
+(
+    pn.ggplot(run_df,pn.aes(x="tokens_per_batch", y="avg_peak_mem", color="model_size", group = "model_size")) +
+    pn.geom_point() +
+    pn.geom_line() +
+    pn.guides(color = pn.guide_legend(title = "Model Size (M)")) +
+    pn.labs(
+        x = "Tokens per batch",
+        y = "Peak memory (GB)",
+        title = "Peak memory usage vs. tokens per batch"
+    ) +
+    pn.theme_minimal()
+)
+```
+
+
+
+```{python}
+(
+    pn.ggplot(run_df,pn.aes(x="tokens_per_batch", y="avg_run_time", color="model_size", group = "model_size")) +
+    pn.geom_point() +
+    pn.geom_line() +
+    pn.guides(color = pn.guide_legend(title = "Model Size (M)")) +
+    pn.labs(
+        x = "Tokens per batch",
+        y = "Run Time (s)",
+        title = "Run time vs. tokens per batch"
+    ) +
+    pn.theme_minimal()
+)
+
+```
+
+
+```{python}
+lora_exp_results = pd.read_csv("/manitou/pmg/users/vss2134/HPML/project/esm_training/esm_training/lora_results.csv", names = ["model", "max_tokens_per_batch", "max_seq_len", "peak_mem", "offload"]).assign(
+    model_size = lambda x: x.model.str.split("_").str[2].str.split("M").str[0],
+    max_tokens_per_batch = lambda x: x.max_tokens_per_batch.astype(int) * 2560,
+    peak_mem = lambda x: x.peak_mem + 3
+).assign(
+    model_size =lambda x: pd.Categorical(x.model_size, categories = ["650", "150", "35", "8"])
+)
+
+```
+
+```{python}
+all_mutseqs = pd.read_csv("/manitou/pmg/users/vss2134/DrugResponseDataProcessing/data/prism/mutseqs/prism_all_tx/all_samples_mutseqs.csv")
+```
+
+
+
+```{python}
+tokens_per_sample = all_mutseqs.query("aa_seq_len < 2560").query("pgxpdc_id != 'WT'").groupby("pgxpdc_id").aa_seq_len.sum().reset_index(drop=False)
+(
+    pn.ggplot(tokens_per_sample) + 
+    pn.geom_histogram(pn.aes(x = "aa_seq_len"), bins = 30) +
+    pn.theme_minimal() 
+)
+
+
+```
+
+
+
+```{python}
+
+seqlen_exp_df = pd.read_csv("/manitou/pmg/users/vss2134/HPML/project/esm_training/esm_training/seqlen_exp.csv", names = ["model", "bsize", "max_seq_len", "peak_mem", "run_time"]).assign(
+    attention_alg = ["FlashAttention"]*20+ ["TorchAttention"] * 20
+).assign(
+    model_size = lambda x: x.model.str.split("_").str[2].str.split("M").str[0],
+).assign(
+    model_size =lambda x: pd.Categorical(x.model_size, categories = ["650", "150", "35", "8"])
+)
+
+
+
+```
+
+
+```{python}
+(
+    pn.ggplot(seqlen_exp_df, pn.aes(x = "max_seq_len", y = "peak_mem", color = "model_size", group = "model_size")) +
+    pn.geom_point() +
+    pn.geom_line() +
+    pn.guides(color = pn.guide_legend(title = "Model Size (M)")) +
+    pn.facet_wrap("~attention_alg") +
+    pn.labs(
+        x = "Max sequence length",
+        y = "Peak memory (GB)",
+        title = "Peak memory usage vs. max sequence length"
+    ) +
+    pn.theme_minimal()
+)
+```
+
+
+
+```{python}
+import numpy as np 
+import pandas as pd
+import glob
+import pickle 
+def load(path):
+    with open(path, "rb") as f:
+        return pickle.load(f)
+files = glob.glob("/manitou/pmg/users/vss2134/HPML/project/sparse_results/global_*")
+sparsity_results = [load(p) for p in files]
+
+sp_frac = [p.split("_")[-1].split(".")[1] for p in files]
+
+vanil_pcor = [sparsity_results[i]["vanilla_meltome_pcor"][0] for i in range(len(sparsity_results))]
+
+vanil_mlm_loss = np.array([
+    np.median(sparsity_results[i]["vanilla_mlm_val_loss"]) for i in range(len(sparsity_results))
+])
+sp_mlm_loss = np.array([
+    np.median(sparsity_results[i]["sparse_mlm_val_loss"]) for i in range(len(sparsity_results))
+])
+
+sp_pcor = [sparsity_results[i]["sparse_meltome_pcor"][0] for i in range(len(sparsity_results))]
+
+res_df = pd.DataFrame({
+    "sp_frac": sp_frac,
+    "vanil_pcor": vanil_pcor,
+    "sp_pcor": sp_pcor,
+    "vanil_mlm_loss": vanil_mlm_loss,
+    "sp_mlm_loss": sp_mlm_loss
+}).assign(
+    sp_frac = lambda x: x.sp_frac.astype(float)/10,
+    sp_type = [f.split("_")[-2].split(".")[0] for f in files],
+    frac_orig_pcor = lambda x: x.sp_pcor / avg_vanil_pcor,
+    frac_orig_mlm_loss = lambda x: x.sp_mlm_loss / x.vanil_mlm_loss
+)
+```
+
+```{python}
+(
+    pn.ggplot(res_df, pn.aes(x = "sp_frac", y = "frac_orig_pcor")) + 
+    pn.geom_point() + 
+    pn.facet_wrap("~sp_type") +
+    pn.labs(
+        x = "Sparsity Fraction",
+        y = "Fraction of original performance",
+        title = "Fraction of original performance on Meltome benchmark"
+    ) +
+    pn.ylim([.8, 1.1]) +
+    pn.theme_bw()
+
+)
+
+```
+
+
+```{python}
+(
+    pn.ggplot(res_df, pn.aes(x = "sp_frac", y = "frac_orig_mlm_loss")) + 
+    pn.geom_point() + 
+    pn.facet_wrap("~sp_type") +
+    pn.labs(
+        x = "Sparsity Fraction",
+        y = "MLM loss",
+        title = "Fraction of original performance on MLM loss "
+    ) +
+    pn.ylim([.8, 1.1]) +
+    pn.theme_bw()
+
+)
+```
